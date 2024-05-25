@@ -2,12 +2,16 @@ from flask import Flask, render_template, request
 import google.generativeai as palm
 import replicate 
 import os 
+import sqlite3
+import datetime
+from flask import Markup
 
 flag = 1
 name = ""
 
 makersuite_api=os.getenv("MAKERSUITE_API_TOKEN")
-palm.configure(api_key=makersuite_api)
+palm.configure(api_key="AIzaSyChAegrN61M4LMXBufweQ6etMKZJ2NueH8")
+os.environ["REPLICATE_API_TOKEN"] = "r8_5Mi2xIw7qLTLtO5rEk7cY1kzHuSZtbX2v47V8"
 
 model = {"model" : "models/chat-bison-001"}
 app = Flask (__name__)
@@ -19,9 +23,16 @@ def index():
 @app.route("/main",methods=["GET","POST"])
 def main():
     global flag, name
+    print("flag",flag)
     if flag == 1:
         name = request.form.get("q")
-        flag = 0 
+        current_time = datetime.datetime.now()
+        conn = sqlite3.connect('log.db')
+        c = conn.cursor()
+        c.execute("insert into user (name,time) values (?,?)", (name,current_time))
+        conn.commit()
+        c.close()
+        conn.close()
     return(render_template("main.html",r=name))
 
 @app.route("/prediction",methods=["GET","POST"])
@@ -52,6 +63,30 @@ def image_result():
     q =  request.form.get("q")
     r = replicate.run("stability-ai/stable-diffusion:db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf",input={"prompt": q,})
     return(render_template("image_result.html",r=r[0]))
+
+@app.route("/log",methods=["GET","POST"])
+def log():
+    conn = sqlite3.connect('log.db')
+    c = conn.cursor()
+    c.execute("select * from user")
+    r=""
+    for row in c:
+        r += str(row) + "<br>"
+    print (r)
+    R = Markup(r)
+    c.close()
+    conn.close()
+    return(render_template("log.html",r=r))
+
+@app.route("/delete",methods=["GET","POST"])
+def delete():
+    conn = sqlite3.connect('log.db')
+    c = conn.cursor()
+    c.execute("delete from user")
+    conn.commit()
+    c.close()
+    conn.close()
+    return(render_template("delete.html"))
 
 @app.route("/end",methods=["GET","POST"])
 def end():
