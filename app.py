@@ -33,6 +33,7 @@ def main():
         conn.commit()
         c.close()
         conn.close()
+        flag=0
     return(render_template("main.html",r=name))
 
 @app.route("/prediction",methods=["GET","POST"])
