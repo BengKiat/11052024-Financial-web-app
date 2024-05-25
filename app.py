@@ -10,8 +10,7 @@ flag = 1
 name = ""
 
 makersuite_api=os.getenv("MAKERSUITE_API_TOKEN")
-palm.configure(api_key="AIzaSyChAegrN61M4LMXBufweQ6etMKZJ2NueH8")
-os.environ["REPLICATE_API_TOKEN"] = "r8_5Mi2xIw7qLTLtO5rEk7cY1kzHuSZtbX2v47V8"
+palm.configure(api_key=makersuite_api)
 
 model = {"model" : "models/chat-bison-001"}
 app = Flask (__name__)
